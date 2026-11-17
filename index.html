@@ -61,7 +61,7 @@
 </section>
 <section aria-labelledby="treasure-rewards">
 <h2 id="treasure-rewards">Recompensas de cofres</h2>
-<p>Rotación del 8 al 15 de noviembre y ficha pirata.</p>
+<p>Las recompensas se añaden al comenzar cada rotación del <a href="https://fortnite.gg/treasure-hunt">calendario comunitario</a>.</p>
 <label><input id="hide-owned" type="checkbox" checked> Ocultar conseguidas</label>
 <ul id="reward-list" class="treasure-list"></ul>
 <p id="rewards-empty" hidden>No quedan recompensas pendientes.</p>
@@ -566,6 +566,38 @@ const rewards = [
   ['london', 'London'],
   ['so-kawaii', 'So Kawaii']
 ];
+const weeklyRewards = [
+  {
+    startsAt: Date.UTC(2026, 10, 15, 14),
+    items: [
+      ['gold-miku', 'Solid Gold Miku'],
+      ['corvette-zr1', 'Chevrolet Corvette ZR1'],
+      ['miku-takarabako', "Miku's Takarabako"],
+      ['pppp', 'PPPP'],
+      ['may-fortune-find-you', 'May Fortune Find You']
+    ]
+  },
+  {
+    startsAt: Date.UTC(2026, 10, 22, 14),
+    items: [
+      ['gold-teto', 'Solid Gold Kasane Teto'],
+      ['gold-urus', 'Gold Lamborghini Urus SE'],
+      ['rogue-wave-tidewalker', 'Rogue Wave and Tidewalker'],
+      ['sea-shanty', 'Sea Shanty'],
+      ['oscars-wraps', "Oscar's Wraps"]
+    ]
+  },
+  {
+    startsAt: Date.UTC(2026, 10, 29, 14),
+    items: [
+      ['gold-captain-x', 'Solid Gold Captain X'],
+      ['gold-g-wagon-v2', 'Gold G-Wagon v2'],
+      ['roasted-meat', 'Roasted Meat'],
+      ['i-follow-rivers', 'I Follow Rivers'],
+      ['jones-straw-hats', 'Jones and the Straw Hats']
+    ]
+  }
+];
 const rewardsKey = 'fortnite-treasure-rewards';
 const rewardList = document.querySelector('#reward-list');
 const rewardMenu = document.querySelector('#reward-menu');
@@ -592,7 +624,7 @@ function filterRewards() {
 }
 
 hideOwned.addEventListener('change', filterRewards);
-for (const [id, name] of rewards) {
+function appendReward(id, name) {
   const row = document.createElement('li');
   row.dataset.rewardId = id;
   const button = document.createElement('button');
@@ -617,7 +649,24 @@ for (const [id, name] of rewards) {
   rewardList.append(row);
 }
 
-filterRewards();
+function refreshRewards() {
+  const now = Date.now();
+  const shown = new Set(Array.from(rewardList.children, row => row.dataset.rewardId));
+  const unlocked = weeklyRewards.filter(week => week.startsAt <= now).flatMap(week => week.items);
+  for (const [id, name] of [...rewards, ...unlocked]) {
+    if (shown.has(id)) continue;
+    appendReward(id, name);
+    shown.add(id);
+  }
+  filterRewards();
+}
+
+refreshRewards();
+setInterval(refreshRewards, 30_000);
+window.addEventListener('pageshow', refreshRewards);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) refreshRewards();
+});
 rewardAction.addEventListener('click', () => {
     const { id, row, button, status } = selectedReward;
     const checked = !owned.has(id);
